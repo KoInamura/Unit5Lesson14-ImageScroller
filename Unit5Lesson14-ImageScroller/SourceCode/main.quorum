@@ -1,0 +1,103 @@
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.KeyboardListener
+use Libraries.Sound.Speech
+use Libraries.Sound.Audio
+
+class Main is Game, KeyboardListener
+Drawable picture0
+Drawable picture1
+Drawable picture2
+Drawable picture3
+
+Speech speech
+
+Audio newPicSound
+Audio lastPicSound
+
+Array<Drawable> arrayOfPictures
+
+integer currentPic = 0
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        arrayOfPictures:Add(picture0)
+        arrayOfPictures:Add(picture1)
+        arrayOfPictures:Add(picture2)
+        arrayOfPictures:Add(picture3)
+
+        LoadAllPictures()
+
+        SetDescriptionToPicture(0, "Fall: Scarlet leaves on an autumn braze maple tree")
+        SetDescriptionToPicture(1, "Winter: Snow on the ground and an evergreen tree")
+        SetDescriptionToPicture(2, "Spring: Butterflies on flowers")
+        SetDescriptionToPicture(3, "Summer: Fireworks spectacle")
+
+        newPicSound:Load("/Audio/Bing.ogg")
+        lastPicSound:Load("/Audio/Boing.ogg")
+
+        arrayOfPictures:Get(currentPic):Show()
+        newPicSound:Play()
+        AddKeyboardListener(me)
+    end
+
+    action Update(number seconds)
+    end
+
+    action PressedKey(KeyboardEvent event)
+        if event:keyCode = event:DOWN
+            if currentPic < arrayOfPictures:GetSize()-1
+                arrayOfPictures:Get(currentPic):Hide()
+                currentPic = currentPic + 1
+                arrayOfPictures:Get(currentPic):Show()
+                newPicSound:Play()
+            else
+                arrayOfPictures:Get(currentPic):Hide()
+                currentPic = 0
+                arrayOfPictures:Get(currentPic):Show()
+                newPicSound:Play()
+            end
+        elseif event:keyCode = event:UP
+            if currentPic <= 0
+                arrayOfPictures:Get(currentPic):Hide()
+                currentPic = 3
+                arrayOfPictures:Get(currentPic):Show()
+                lastPicSound:Play()
+            else
+                arrayOfPictures:Get(currentPic):Hide()
+                currentPic = currentPic -1
+                arrayOfPictures:Get(currentPic):Show()
+                lastPicSound:Play()
+            end
+        elseif event:keyCode = event:SPACE
+            speech:Say(arrayOfPictures:Get(currentPic):GetDescription())
+        elseif event:keyCode = event:ESCAPE
+            Exit()
+        end
+    end
+
+// Refactoring the code to manage complexity and o improve the flexibility of the code
+
+    action LoadOnePicture(Drawable object, text filename)
+        object:Load("/Graphics/"+ filename)
+    end
+
+    action LoadAllPictures
+        integer loadCounter = 0
+        repeat while loadCounter < arrayOfPictures:GetSize()
+            LoadOnePicture(arrayOfPictures:Get(loadCounter), "picture " + loadCounter + ".png")
+            Add(arrayOfPictures:Get(loadCounter))
+            arrayOfPictures:Get(loadCounter):Hide()
+            loadCounter = loadCounter + 1
+        end
+    end
+
+    action SetDescriptionToPicture(integer arrayIndex, text description)
+        arrayOfPictures:Get(arrayIndex):SetDescription(description)
+    end
+end
